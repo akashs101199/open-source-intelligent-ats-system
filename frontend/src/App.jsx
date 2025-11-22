@@ -11,94 +11,105 @@ import { useCandidates } from './hooks/useCandidates';
 import { useMatching } from './hooks/useMatching';
 
 function App() {
-    const [activeTab, setActiveTab] = useState('jobs');
-    const [selectedJobId, setSelectedJobId] = useState(null);
+  const [activeTab, setActiveTab] = useState('jobs');
+  const [selectedJobId, setSelectedJobId] = useState(null);
 
-    const { jobs, loading: jobsLoading, error: jobsError, createJob, deleteJob, fetchJobs } = useJobs();
-    const { candidates, loading: candidatesLoading, error: candidatesError, uploadCandidate, fetchCandidates } = useCandidates();
-    const { matches, loading: matchingLoading, error: matchingError, processingTime, matchCandidates } = useMatching();
+  const {
+    jobs,
+    loading: jobsLoading,
+    error: jobsError,
+    createJob,
+    deleteJob,
+    fetchJobs,
+  } = useJobs();
+  const {
+    candidates,
+    loading: candidatesLoading,
+    error: candidatesError,
+    uploadCandidate,
+    fetchCandidates,
+  } = useCandidates();
+  const {
+    matches,
+    loading: matchingLoading,
+    error: matchingError,
+    processingTime,
+    matchCandidates,
+  } = useMatching();
 
-    const handleCreateJob = async (jobData) => {
-        await createJob(jobData);
-        setActiveTab('jobs');
-    };
+  const handleCreateJob = async jobData => {
+    await createJob(jobData);
+    setActiveTab('jobs');
+  };
 
-    const handleUploadCandidate = async (file, candidateName) => {
-        await uploadCandidate(file, candidateName);
-    };
+  const handleUploadCandidate = async (file, candidateName) => {
+    await uploadCandidate(file, candidateName);
+  };
 
-    const handleMatchCandidates = async (jobId) => {
-        setSelectedJobId(jobId);
-        await matchCandidates(jobId, 10, 0.0);
-        setActiveTab('matches');
-    };
+  const handleMatchCandidates = async jobId => {
+    setSelectedJobId(jobId);
+    await matchCandidates(jobId, 10, 0.0);
+    setActiveTab('matches');
+  };
 
-    const selectedJob = jobs.find(job => job.id === selectedJobId);
+  const selectedJob = jobs.find(job => job.id === selectedJobId);
 
-    return (
-        <div className="min-h-screen">
-            <Header />
+  return (
+    <div className="min-h-screen">
+      <Header />
 
-            <main className="container mx-auto px-4 py-8">
-                <Navigation activeTab={activeTab} onTabChange={setActiveTab} />
+      <main className="container mx-auto px-4 py-8">
+        <Navigation activeTab={activeTab} onTabChange={setActiveTab} />
 
-                {/* Jobs Tab */}
-                {activeTab === 'jobs' && (
-                    <JobList
-                        jobs={jobs}
-                        loading={jobsLoading}
-                        error={jobsError}
-                        onMatch={handleMatchCandidates}
-                        onDelete={deleteJob}
-                        onRetry={fetchJobs}
-                    />
-                )}
+        {/* Jobs Tab */}
+        {activeTab === 'jobs' && (
+          <JobList
+            jobs={jobs}
+            loading={jobsLoading}
+            error={jobsError}
+            onMatch={handleMatchCandidates}
+            onDelete={deleteJob}
+            onRetry={fetchJobs}
+          />
+        )}
 
-                {/* Candidates Tab */}
-                {activeTab === 'candidates' && (
-                    <div className="space-y-8">
-                        <CandidateUpload
-                            onUpload={handleUploadCandidate}
-                            loading={candidatesLoading}
-                        />
-                        <CandidateList
-                            candidates={candidates}
-                            loading={candidatesLoading}
-                            error={candidatesError}
-                            onRetry={fetchCandidates}
-                        />
-                    </div>
-                )}
+        {/* Candidates Tab */}
+        {activeTab === 'candidates' && (
+          <div className="space-y-8">
+            <CandidateUpload onUpload={handleUploadCandidate} loading={candidatesLoading} />
+            <CandidateList
+              candidates={candidates}
+              loading={candidatesLoading}
+              error={candidatesError}
+              onRetry={fetchCandidates}
+            />
+          </div>
+        )}
 
-                {/* Matches Tab */}
-                {activeTab === 'matches' && (
-                    <MatchResults
-                        matches={matches}
-                        loading={matchingLoading}
-                        error={matchingError}
-                        processingTime={processingTime}
-                        jobTitle={selectedJob?.title}
-                        onRetry={() => selectedJobId && handleMatchCandidates(selectedJobId)}
-                    />
-                )}
+        {/* Matches Tab */}
+        {activeTab === 'matches' && (
+          <MatchResults
+            matches={matches}
+            loading={matchingLoading}
+            error={matchingError}
+            processingTime={processingTime}
+            jobTitle={selectedJob?.title}
+            onRetry={() => selectedJobId && handleMatchCandidates(selectedJobId)}
+          />
+        )}
 
-                {/* Create Job Tab */}
-                {activeTab === 'create' && (
-                    <JobForm
-                        onSubmit={handleCreateJob}
-                        loading={jobsLoading}
-                    />
-                )}
-            </main>
+        {/* Create Job Tab */}
+        {activeTab === 'create' && <JobForm onSubmit={handleCreateJob} loading={jobsLoading} />}
+      </main>
 
-            {/* Footer */}
-            <footer className="border-t border-gray-800 mt-16 py-6">
-                <div className="container mx-auto px-4 text-center text-gray-400 text-sm">
-                    <p>Intelligent ATS System v1.0 - Built for Agentic AI Roles</p>
-                </div>
-            </footer>
+      {/* Footer */}
+      <footer className="border-t border-gray-800 mt-16 py-6">
+        <div className="container mx-auto px-4 text-center text-gray-400 text-sm">
+          <p>Intelligent ATS System v1.0 - Built for Agentic AI Roles</p>
         </div>
-    );
+      </footer>
+    </div>
+  );
 }
 
 export default App;

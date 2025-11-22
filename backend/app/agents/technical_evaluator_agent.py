@@ -127,6 +127,11 @@ Return JSON format:
   "overall_assessment": "Brief 1-2 sentence summary"
 }}
 
+IMPORTANT: 
+- If the candidate has strong relevant experience, do not be afraid to give high scores (8-10).
+- Look for equivalent technologies (e.g., if they know LangChain, they likely understand agent concepts).
+- Consider the depth of their projects and experience description.
+
 Return ONLY JSON, no additional text."""
 
         result = await llm_service.generate_structured(prompt)

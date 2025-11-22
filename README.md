@@ -1,6 +1,6 @@
 # Intelligent Multi-Agent ATS System for Agentic AI Roles
 
-A sophisticated, production-ready Applicant Tracking System that uses multiple AI agents to deeply understand candidate qualifications beyond keywords, specifically designed for evaluating Agentic AI engineering roles.
+A sophisticated, Applicant Tracking System that uses multiple AI agents to deeply understand candidate qualifications beyond keywords, specifically designed for evaluating Agentic AI engineering roles.
 
 ## 🌟 Features
 

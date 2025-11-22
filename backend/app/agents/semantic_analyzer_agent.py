@@ -125,24 +125,24 @@ class SemanticAnalyzerAgent(BaseAgent):
         prompt = f"""Analyze the semantic fit between this candidate and job role for an Agentic AI position.
 
 Candidate Experience:
-{resume_context["experience"][:1500]}
+{resume_context["experience"][:2000]}
 
 Candidate Projects:
-{resume_context["projects"][:1000]}
+{resume_context["projects"][:1500]}
 
 Job Responsibilities:
-{job_context["responsibilities"][:1000]}
+{job_context["responsibilities"][:1500]}
 
 Required Skills:
-{job_context["skills"][:500]}
+{job_context["skills"][:1000]}
 
 Analyze:
-1. How well does the candidate's ACTUAL WORK align with job requirements (not just keywords)?
+1. How well does the candidate's ACTUAL WORK align with job requirements? Look for transferable skills and underlying concepts, not just exact keyword matches.
 2. What is the depth of their relevant experience?
 3. What evidence exists of agentic AI capabilities (autonomous systems, multi-agent, tool use, planning)?
 4. What transferable skills and adaptability do they demonstrate?
 
-Provide a 2-3 sentence analysis focusing on substance over buzzwords. Be specific about what makes them a good or poor fit."""
+Provide a 2-3 sentence analysis focusing on substance. Be generous with transferable skills."""
 
         response = await llm_service.generate(prompt, temperature=0.3)
         return response[:500]  # Limit length

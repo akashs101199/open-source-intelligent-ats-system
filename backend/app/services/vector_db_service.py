@@ -12,21 +12,34 @@ logger = logging.getLogger(__name__)
 
 class VectorDBService:
     def __init__(self):
-        self.client = QdrantClient(
-            host=settings.QDRANT_HOST,
-            port=settings.QDRANT_PORT
-        )
+        # Initialise the Qdrant client. If the service is not reachable we will handle it gracefully.
+        try:
+            self.client = QdrantClient(
+                host=settings.QDRANT_HOST,
+                port=settings.QDRANT_PORT
+            )
+            self.enabled = True
+        except Exception as e:
+            logger.error(f"Failed to create Qdrant client: {e}")
+            self.client = None
+            self.enabled = False
         self.collection_name = settings.QDRANT_COLLECTION
         self.embedding_model = SentenceTransformer(settings.EMBEDDING_MODEL)
         self.dimension = settings.EMBEDDING_DIMENSION
-        self._ensure_collection()
+        # Ensure collection exists only if the client is available
+        if self.enabled:
+            self._ensure_collection()
+        else:
+            logger.warning("VectorDBService disabled because Qdrant is unavailable.")
     
     def _ensure_collection(self):
-        """Create collection if it doesn't exist"""
+        """Create collection if it doesn't exist. Handles connection errors gracefully."""
+        if not self.enabled:
+            logger.debug("Skipping collection creation because VectorDBService is disabled.")
+            return
         try:
             collections = self.client.get_collections().collections
             exists = any(c.name == self.collection_name for c in collections)
-            
             if not exists:
                 self.client.create_collection(
                     collection_name=self.collection_name,
@@ -38,6 +51,8 @@ class VectorDBService:
                 logger.info(f"Created collection: {self.collection_name}")
         except Exception as e:
             logger.error(f"Error ensuring collection: {e}")
+            # Disable further operations if collection cannot be ensured
+            self.enabled = False
     
     def encode_text(self, text: str) -> List[float]:
         """Generate embedding for text"""
@@ -49,13 +64,14 @@ class VectorDBService:
         resume_text: str,
         metadata: Dict
     ) -> bool:
-        """Store candidate resume in vector database"""
+        """Store candidate resume in vector database. Returns False if service disabled."""
+        if not self.enabled:
+            logger.warning("Attempted to store candidate but VectorDBService is disabled.")
+            return False
         try:
             embedding = self.encode_text(resume_text)
-            
             # Generate numeric ID from string
             point_id = abs(hash(candidate_id)) % (2**63)
-            
             self.client.upsert(
                 collection_name=self.collection_name,
                 points=[
@@ -72,7 +88,6 @@ class VectorDBService:
             )
             logger.info(f"Stored candidate {candidate_id} in vector DB")
             return True
-            
         except Exception as e:
             logger.error(f"Error storing candidate: {e}")
             return False
@@ -83,17 +98,18 @@ class VectorDBService:
         top_k: int = 10,
         min_score: float = 0.0
     ) -> List[Dict]:
-        """Search for matching candidates"""
+        """Search for matching candidates. Returns empty list if service disabled."""
+        if not self.enabled:
+            logger.warning("Search requested but VectorDBService is disabled.")
+            return []
         try:
             query_embedding = self.encode_text(query_text)
-            
             results = self.client.search(
                 collection_name=self.collection_name,
                 query_vector=query_embedding,
                 limit=top_k,
                 score_threshold=min_score
             )
-            
             return [
                 {
                     "candidate_id": hit.payload["candidate_id"],
@@ -102,13 +118,15 @@ class VectorDBService:
                 }
                 for hit in results
             ]
-            
         except Exception as e:
             logger.error(f"Error searching candidates: {e}")
             return []
     
     def delete_candidate(self, candidate_id: str) -> bool:
-        """Delete candidate from vector database"""
+        """Delete candidate from vector database. Returns False if service disabled."""
+        if not self.enabled:
+            logger.warning("Delete requested but VectorDBService is disabled.")
+            return False
         try:
             point_id = abs(hash(candidate_id)) % (2**63)
             self.client.delete(
@@ -121,11 +139,15 @@ class VectorDBService:
             return False
     
     def check_health(self) -> bool:
-        """Check if Qdrant service is available"""
+        """Check if Qdrant service is available. Returns False if client not initialised."""
+        if not self.enabled:
+            logger.debug("VectorDBService health check: disabled.")
+            return False
         try:
             self.client.get_collections()
             return True
-        except:
+        except Exception as e:
+            logger.error(f"VectorDB health check failed: {e}")
             return False
 
 vector_db_service = VectorDBService()

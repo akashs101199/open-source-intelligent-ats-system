@@ -3,6 +3,7 @@ Configuration management for the ATS system
 """
 from pydantic_settings import BaseSettings
 from functools import lru_cache
+from typing import Optional
 import os
 
 class Settings(BaseSettings):
@@ -17,8 +18,8 @@ class Settings(BaseSettings):
     
     # Ollama LLM
     OLLAMA_URL: str = "http://localhost:11434"
-    OLLAMA_MODEL: str = "llama3.1:8b"
-    OLLAMA_TIMEOUT: int = 120
+    OLLAMA_MODEL: str = "llama3:8b"
+    OLLAMA_TIMEOUT: Optional[int] = None  # No timeout - let it run as long as needed
     
     # Embeddings
     EMBEDDING_MODEL: str = "all-MiniLM-L6-v2"

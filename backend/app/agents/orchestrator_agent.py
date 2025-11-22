@@ -3,6 +3,7 @@ Orchestrator Agent - Coordinates all agents and produces final scoring
 """
 from typing import Dict, Any
 import asyncio
+import numpy as np
 from .base_agent import BaseAgent
 from .parser_agent import ParserAgent
 from .semantic_analyzer_agent import SemanticAnalyzerAgent
@@ -15,12 +16,31 @@ from ..models.schemas import (
 from ..config import settings
 
 class OrchestratorAgent(BaseAgent):
+    # Provide a minimal implementation for the abstract `process` method required by BaseAgent
+    async def process(self, *args, **kwargs) -> Dict[str, Any]:
+        """Placeholder process method.
+        The orchestrator primarily uses `process_candidate`; this method is only
+        needed to satisfy the abstract base class contract. It logs the call
+        and returns an empty dict.
+        """
+        self.log_debug("OrchestratorAgent.process called with args=%s, kwargs=%s" % (args, kwargs))
+        return {}
     def __init__(self):
         super().__init__("OrchestratorAgent")
         self.parser = ParserAgent()
         self.semantic_analyzer = SemanticAnalyzerAgent()
         self.technical_evaluator = TechnicalEvaluatorAgent()
         self.experience_synthesizer = ExperienceSynthesizerAgent()
+
+    def _sanitize(self, obj):
+        """Recursively convert numpy arrays to plain Python types for Pydantic serialization."""
+        if isinstance(obj, np.ndarray):
+            return obj.tolist()
+        if isinstance(obj, dict):
+            return {k: self._sanitize(v) for k, v in obj.items()}
+        if isinstance(obj, list):
+            return [self._sanitize(v) for v in obj]
+        return obj
     
     async def process_candidate(
         self,
@@ -67,6 +87,12 @@ class OrchestratorAgent(BaseAgent):
             gaps
         )
         
+        # Ensure all parts of the detailed analysis are JSON‑serialisable
+        sanitized_semantic = self._sanitize(semantic_result)
+        sanitized_technical = self._sanitize(technical_result)
+        sanitized_experience = self._sanitize(experience_result)
+        sanitized_resume = self._sanitize(resume_data.dict())
+
         return CandidateScore(
             candidate_id=candidate_id,
             overall_score=scores["overall"],
@@ -75,14 +101,14 @@ class OrchestratorAgent(BaseAgent):
             experience_quality=scores["experience"],
             agentic_capabilities=scores["agentic"],
             detailed_analysis={
-                "semantic": semantic_result,
-                "technical": technical_result,
-                "experience": experience_result,
-                "resume_data": resume_data.dict()
+                "semantic": sanitized_semantic,
+                "technical": sanitized_technical,
+                "experience": sanitized_experience,
+                "resume_data": sanitized_resume,
             },
             strengths=strengths,
             gaps=gaps,
-            reasoning=reasoning
+            reasoning=reasoning,
         )
     
     def _calculate_composite_score(

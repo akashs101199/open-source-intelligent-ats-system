@@ -81,6 +81,12 @@ class CandidateUpload(BaseModel):
     filename: str
     upload_time: datetime = Field(default_factory=datetime.now)
 
+class CandidateCreate(BaseModel):
+    candidate_id: str
+    resume_text: str
+    name: Optional[str] = None
+    metadata: Dict[str, Any] = Field(default_factory=dict)
+
 class SemanticScores(BaseModel):
     experience_match: float = Field(ge=0.0, le=1.0)
     skills_match: float = Field(ge=0.0, le=1.0)
