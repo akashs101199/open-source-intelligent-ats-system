@@ -82,7 +82,12 @@ Return JSON:
   "production": 7,
   "quality_score": 7.2,
   "impact": "Brief 2-3 sentence assessment of their impact"
-}}"""
+}}
+
+IMPORTANT:
+- High scores (8-10) should be given for demonstrable impact and strong technical ownership.
+- Do not penalize for "short" duration if the impact is high.
+- Look for specific metrics (e.g., "reduced latency by 60%", "delivered $180K savings")."""
 
         result = await llm_service.generate_structured(prompt)
         

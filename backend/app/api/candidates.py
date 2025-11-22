@@ -8,6 +8,7 @@ from ..services.vector_db_service import vector_db_service
 from ..services.document_service import document_service
 from datetime import datetime
 from ..config import settings
+from ..models.schemas import CandidateCreate
 
 router = APIRouter(prefix="/api/candidates", tags=["candidates"])
 
@@ -76,6 +77,35 @@ async def upload_resume(
         "candidate_id": candidate_id,
         "name": candidate_data["name"],
         "status": "uploaded",
+        "indexed": success
+    }
+
+@router.post("", response_model=dict)
+async def create_candidate(candidate: CandidateCreate):
+    """Manually create a candidate"""
+    
+    # Store candidate info
+    candidate_data = {
+        "id": candidate.candidate_id,
+        "name": candidate.name or "Unknown",
+        "resume_text": candidate.resume_text,
+        "filename": "manual_entry.txt",
+        "upload_time": datetime.now().isoformat(),
+        "file_size_kb": len(candidate.resume_text.encode('utf-8')) / 1024
+    }
+    
+    db.create_candidate(candidate.candidate_id, candidate_data)
+    
+    # Store in vector database
+    success = vector_db_service.store_candidate(
+        candidate.candidate_id, 
+        candidate.resume_text, 
+        candidate.metadata
+    )
+    
+    return {
+        "status": "stored",
+        "candidate_id": candidate.candidate_id,
         "indexed": success
     }
 
