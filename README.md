@@ -2,6 +2,11 @@
 
 A sophisticated, Applicant Tracking System that uses multiple AI agents to deeply understand candidate qualifications beyond keywords, specifically designed for evaluating Agentic AI engineering roles.
 
+<img width="1615" height="952" alt="Screenshot 2025-11-22 at 09 32 26" src="https://github.com/user-attachments/assets/74d7f5bd-5bc0-4ccb-9013-b1c72fda91d9" />
+<img width="1613" height="934" alt="Screenshot 2025-11-22 at 09 32 45" src="https://github.com/user-attachments/assets/68f3eb8a-bbab-4d32-927c-48184dc4ad0a" />
+<img width="1629" height="952" alt="Screenshot 2025-11-22 at 09 33 05" src="https://github.com/user-attachments/assets/7b3be49d-760c-4844-a0d8-be51d5674554" />
+
+
 ## 🌟 Features
 
 ### Multi-Agent Architecture
